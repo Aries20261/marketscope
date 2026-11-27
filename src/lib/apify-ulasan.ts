@@ -1,5 +1,5 @@
 import 'server-only';
-import { requireEnv } from '@/lib/env';
+import { requireToken } from '@/lib/env';
 import type { Ulasan } from '@/lib/ulasan-map';
 
 const ACTOR = 'zen-studio~shopee-product-reviews-scraper';
@@ -13,7 +13,7 @@ export const urlProdukValid = (u: string) => URL_SHOPEE.test(u);
  * (sekitar US$3,99 per 1.000 ulasan pada paket Free). Token dari APIFY_TOKEN.
  */
 export async function ambilUlasanBintang1(urls: string[], maksPerProduk: number): Promise<Ulasan[]> {
-  const token = requireEnv('APIFY_TOKEN');
+  const token = requireToken('APIFY_TOKEN');
   const aman = urls.filter(urlProdukValid).slice(0, 5);
   if (aman.length === 0) throw new Error('Tidak ada URL produk Shopee yang valid.');
   const res = await fetch(`https://api.apify.com/v2/acts/${ACTOR}/run-sync-get-dataset-items?timeout=240`, {

@@ -24,3 +24,11 @@ test('analisisTema menghitung tema per produk dan mengurutkan dari yang terbanya
 test('analisisTema tanpa ulasan', () => {
   assert.deepEqual(analisisTema([], ['1']), { jumlahUlasan: 0, tema: [] });
 });
+
+import { requireToken } from '../src/lib/env.ts';
+test('requireToken membersihkan salah-salin umum', () => {
+  for (const raw of ['apify_api_X1 ', '"apify_api_X1"', 'Bearer apify_api_X1', 'APIFY_TOKEN=apify_api_X1\n', "'apify_api_X1'"]) {
+    process.env.APIFY_TOKEN = raw;
+    assert.equal(requireToken('APIFY_TOKEN'), 'apify_api_X1');
+  }
+});

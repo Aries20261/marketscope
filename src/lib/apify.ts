@@ -1,5 +1,5 @@
 import 'server-only';
-import { requireToken } from '@/lib/env';
+import { requireToken, pesanErrorApify } from '@/lib/env';
 import { mapApifyItems, type ApifyShopeeItem, type KolektorRow } from '@/lib/apify-map';
 
 const ACTOR = 'xtracto~shopee-scraper';
@@ -39,7 +39,7 @@ export async function scrapeShopeeKeyword(
     signal: AbortSignal.timeout(280_000)
   });
   if (res.status === 401) throw new Error('Apify menolak token (HTTP 401): periksa nilai APIFY_TOKEN di Vercel (tanpa tanda kutip atau spasi), lalu redeploy.');
-  if (!res.ok) throw new Error(`Apify menolak permintaan (HTTP ${res.status}).`);
+  if (!res.ok) { const d = await pesanErrorApify(res); throw new Error(`Apify menolak permintaan (HTTP ${res.status})${d ? `: ${d}` : ""}.`); }
   const data = (await res.json()) as unknown;
   if (!Array.isArray(data)) throw new Error('Format hasil Apify tidak dikenali.');
   return mapApifyItems(data as ApifyShopeeItem[], tanggal, keyword);

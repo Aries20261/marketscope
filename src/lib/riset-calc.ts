@@ -112,26 +112,17 @@ function groupSum(rows: ComputedRow[], key: (r: ComputedRow) => string, limit: n
 
 export function buildDashboard(input: RisetRow[]): Dashboard {
   const rows: ComputedRow[] = [];
-  let noSold = 0;
   for (const r of input) {
-    if (!Number.isFinite(r.harga) || r.harga < 0) continue;
-    if (!r.terjualLabel.trim()) {
-      // Sumber (mis. Apify) tidak menyediakan jumlah terjual: produk tetap tampil, omzet tidak dihitung.
-      rows.push({ ...r, terjualMin: 0, exact: false, omzetMin: 0 });
-      noSold++;
-      continue;
-    }
     const t = parseTerjual(r.terjualLabel);
-    if (!t) continue;
+    if (!t || !Number.isFinite(r.harga) || r.harga < 0) continue;
     rows.push({ ...r, terjualMin: t.min, exact: t.exact, omzetMin: omzetMin(r.harga, t.min) });
   }
-  const rounded = rows.filter((r) => !r.exact && r.terjualLabel.trim()).length;
+  const rounded = rows.filter((r) => !r.exact).length;
   const catatan = [
     'Omzet minimum = harga tampil x batas bawah jumlah terjual. Ini batas bawah sepanjang umur produk, bukan omzet sebenarnya dan bukan per bulan.',
     'Harga tampil biasanya varian termurah dan belum dikurangi diskon atau biaya.'
   ];
   if (rounded > 0) catatan.push(`${rounded} dari ${rows.length} produk memakai angka terjual yang dibulatkan (mis. "10RB+"), sehingga urutan di antara produk teratas tidak bisa dibedakan.`);
-  if (noSold > 0) catatan.push(`${noSold} dari ${rows.length} produk tidak memiliki data jumlah terjual dari sumber data, sehingga omzet minimum tidak dihitung (ditampilkan 0). Gunakan harga, rating, dan sebaran toko untuk analisis.`);
   if (input.length > rows.length) catatan.push(`${input.length - rows.length} baris dilewati karena harga atau jumlah terjual tidak terbaca.`);
 
   return {
@@ -144,7 +135,7 @@ export function buildDashboard(input: RisetRow[]): Dashboard {
       hargaMedian: median(rows.map((r) => r.harga))
     },
     top: [...rows].sort((a, b) => b.omzetMin - a.omzetMin).slice(0, 10)
-      .map((r) => ({ label: r.nama, value: r.omzetMin, sub: r.terjualLabel ? `${r.toko} · ${r.terjualLabel} terjual` : r.toko })),
+      .map((r) => ({ label: r.nama, value: r.omzetMin, sub: `${r.toko} · ${r.terjualLabel} terjual` })),
     perToko: groupSum(rows, (r) => r.toko, 8),
     perKota: groupSum(rows, (r) => r.kota ?? '', 8),
     perKategori: groupSum(rows, (r) => r.kategori ?? '', 8),

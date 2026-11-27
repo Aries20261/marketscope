@@ -2,8 +2,6 @@ import type { Metadata } from 'next';
 import { requireUser } from '@/lib/session';
 import RisetForm from './Form';
 
-export const maxDuration = 300; // Vercel: pengambilan Apify berjalan setelah respons (after)
-
 export const metadata: Metadata = { title: 'Permintaan riset baru' };
 
 export default async function BaruPage() {

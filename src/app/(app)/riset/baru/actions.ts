@@ -1,10 +1,8 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { after } from 'next/server';
 import { requireUser } from '@/lib/session';
 import { supabaseServer } from '@/lib/supabase/server';
-import { apifyAktif, jalankanRisetApify } from '@/lib/riset-apify';
 
 export interface RisetFormState { error?: string }
 
@@ -29,7 +27,5 @@ export async function createRisetAction(_p: RisetFormState, fd: FormData): Promi
     .select('id')
     .single();
   if (error || !data) return { error: 'Permintaan tidak dapat disimpan. Coba lagi.' };
-  // Bila APIFY_TOKEN terisi, ambil data lewat Apify setelah respons dikirim; dashboard terisi saat status selesai.
-  if (apifyAktif() && kata.length > 0) after(() => jalankanRisetApify(data.id));
   redirect(`/riset/${data.id}`);
 }

@@ -1,8 +1,9 @@
 import 'server-only';
-import { requireEnv } from '@/lib/env';
+import { requireToken, pesanErrorApify } from '@/lib/env';
 import { mapApifyItems, type ApifyShopeeItem, type KolektorRow } from '@/lib/apify-map';
 
-const ACTOR = 'xtracto~shopee-scraper';
+// xtracto/shopee-scraper diblokir Shopee (tanpa opsi proxy); axery/shopee-scraper punya proxyConfiguration dan tidak menagih run yang diblokir.
+const ACTOR = 'axery~shopee-scraper';
 
 export interface KeywordOptions {
   country?: string;
@@ -20,7 +21,7 @@ export interface KeywordOptions {
 export async function scrapeShopeeKeyword(
   keyword: string, opts: KeywordOptions = {}, tanggal: string
 ): Promise<KolektorRow[]> {
-  const token = requireEnv('APIFY_TOKEN');
+  const token = requireToken('APIFY_TOKEN');
   const input: Record<string, unknown> = {
     mode: 'keyword',
     keyword,
@@ -30,7 +31,8 @@ export async function scrapeShopeeKeyword(
   if (opts.sort) input.sort = opts.sort;
   if (opts.minPrice != null) input.minPrice = opts.minPrice;
   if (opts.maxPrice != null) input.maxPrice = opts.maxPrice;
-  if (opts.fetchDetail) input.fetchDetail = true;
+  // Shopee memblokir banyak IP datacenter; proxy residential Indonesia menurut halaman aktor.
+  input.proxyConfiguration = { useApifyProxy: true, apifyProxyGroups: ['RESIDENTIAL'], apifyProxyCountry: 'ID' };
 
   const res = await fetch(`https://api.apify.com/v2/acts/${ACTOR}/run-sync-get-dataset-items?timeout=240`, {
     method: 'POST',
@@ -38,7 +40,14 @@ export async function scrapeShopeeKeyword(
     body: JSON.stringify(input),
     signal: AbortSignal.timeout(280_000)
   });
-  if (!res.ok) throw new Error(`Apify menolak permintaan (HTTP ${res.status}).`);
+  if (res.status === 401) throw new Error('Apify menolak token (HTTP 401): periksa nilai APIFY_TOKEN di Vercel (tanpa tanda kutip atau spasi), lalu redeploy.');
+  if (!res.ok) {
+    const d = await pesanErrorApify(res);
+    const hint = res.status === 400
+      ? 'Aktor gagal dijalankan, kemungkinan Shopee memblokir permintaan (cek tab Runs di Apify Console untuk alasannya; biaya run tetap terpakai)'
+      : `Apify menolak permintaan (HTTP ${res.status})`;
+    throw new Error(`${hint}${d ? `: ${d}` : ''}.`);
+  }
   const data = (await res.json()) as unknown;
   if (!Array.isArray(data)) throw new Error('Format hasil Apify tidak dikenali.');
   return mapApifyItems(data as ApifyShopeeItem[], tanggal, keyword);

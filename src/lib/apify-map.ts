@@ -1,4 +1,4 @@
-// Pemetaan murni hasil aktor Apify `xtracto/shopee-scraper` (mode keyword) ke baris kolektor MarketScope.
+// Pemetaan murni hasil aktor Apify `axery/shopee-scraper` (format keluaran sama dengan xtracto) (mode keyword) ke baris kolektor MarketScope.
 // Tanpa dependensi supaya bisa diuji di tests/apify-map.test.ts.
 
 export interface ApifyShopeeItem {

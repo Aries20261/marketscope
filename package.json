@@ -9,7 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "seed:admin": "node scripts/seed-admin.mjs",
-    "test": "node --test tests/riset-calc.test.ts tests/apify-map.test.ts"
+    "test": "node --test tests/riset-calc.test.ts tests/apify-map.test.ts tests/suplier.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

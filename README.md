@@ -2,7 +2,7 @@
 
 Riset produk, harga, suplier, dan peluang di marketplace Indonesia. Next.js (App Router) + Supabase, deploy ke Vercel.
 
-Status: **tahap 1** (fondasi): halaman depan dengan pricing, pendaftaran dengan verifikasi superadmin, login, ganti password wajib, manajemen pengguna (admin), skema database dengan RLS. Pencarian, Riset kata kunci, Riset suplier, Buat produk, Watchlist, dan Impor menyusul sesuai rancangan.
+Status: **tahap 1** (fondasi): halaman depan dengan pricing, pendaftaran dengan verifikasi admin/superadmin, login, ganti password wajib, manajemen pengguna (admin), skema database dengan RLS. Pencarian, Riset kata kunci, Riset suplier, Buat produk, Watchlist, dan Impor menyusul sesuai rancangan.
 
 ## Pengaturan
 
@@ -47,11 +47,11 @@ Menu **Riset permintaan**: pengguna (analis ke atas) mengirim kata kunci + provi
 | Peran | Hak |
 |---|---|
 | superadmin | Semua, termasuk membuat dan mengelola superadmin |
-| admin | Mengelola pengguna (kecuali superadmin), reset password semua pengguna lain |
+| admin | Mengelola pengguna (kecuali superadmin), memverifikasi pendaftaran, reset password semua pengguna lain |
 | analis | Membaca dan menulis data riset |
 | viewer | Hanya membaca |
 
-Paket: Gratis, Bulanan (Rp30.000), 4 Bulan (Rp100.000), Lifetime (Rp1.000.000). Pendaftaran mandiri: akun baru nonaktif (status `menunggu`) sampai **superadmin** menyetujui di halaman Admin. Pembayaran online (rencana: mayar.id, atau tampilan nomor rekening) belum ada: superadmin mengaktifkan paket secara manual. Batas pemakaian per paket belum ditetapkan. Pendaftaran belum memakai captcha; hanya kolom jebakan bot, jadi tambahkan captcha atau pembatasan laju sebelum dibuka ke publik luas.
+Paket: Gratis, Bulanan (Rp30.000), 4 Bulan (Rp100.000), Lifetime (Rp1.000.000). Pendaftaran mandiri: akun baru nonaktif (status `menunggu`) sampai **admin atau superadmin** menyetujui di halaman Admin. Pembayaran online (rencana: mayar.id, atau tampilan nomor rekening) belum ada: superadmin mengaktifkan paket secara manual. Batas pemakaian per paket belum ditetapkan. Pendaftaran belum memakai captcha; hanya kolom jebakan bot, jadi tambahkan captcha atau pembatasan laju sebelum dibuka ke publik luas.
 
 ## Keamanan
 

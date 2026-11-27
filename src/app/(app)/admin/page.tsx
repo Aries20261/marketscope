@@ -24,7 +24,6 @@ export default async function AdminPage() {
         {pending.length > 0 ? (
           <div className="card" style={{ borderColor: 'var(--amber)' }}>
             <h2>Menunggu verifikasi ({pending.length})</h2>
-            {isSuper ? null : <p className="small">Hanya superadmin yang dapat menyetujui atau menolak pendaftaran.</p>}
             <div className="tablewrap">
               <table>
                 <thead><tr><th>Pendaftar</th><th>Waktu</th><th>Keputusan</th></tr></thead>

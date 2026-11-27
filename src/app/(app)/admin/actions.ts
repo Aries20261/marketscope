@@ -97,10 +97,9 @@ export async function resetPasswordAction(_p: AdminState, fd: FormData): Promise
   return { ok: `Password ${target.email} direset. Berikan password ini lewat jalur aman; pengguna wajib menggantinya.`, secret: password };
 }
 
-/** Verifikasi pendaftaran mandiri: hanya superadmin. */
+/** Verifikasi pendaftaran mandiri: admin dan superadmin. */
 export async function verifyUserAction(_p: AdminState, fd: FormData): Promise<AdminState> {
   const actor = await requireAdmin();
-  if (actor.role !== 'superadmin') return { error: 'Hanya superadmin yang dapat memverifikasi pendaftaran.' };
   const id = String(fd.get('id') ?? '');
   const decision = String(fd.get('decision') ?? '');
   const plan = String(fd.get('plan') ?? 'gratis') as Plan;

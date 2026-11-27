@@ -4,7 +4,7 @@ import RisetDashboard from '@/components/RisetDashboard';
 import PrintButton from '@/components/PrintButton';
 import { buildDashboard } from '@/lib/riset-calc';
 import { getProfile } from '@/lib/session';
-import { logoutAction } from '@/app/login/actions';
+import AppNav from '@/components/AppNav';
 import { CONTOH_ROWS, CONTOH_TOKO } from '@/lib/contoh-riset';
 
 export const metadata: Metadata = { title: 'Contoh hasil riset' };
@@ -21,13 +21,7 @@ export default async function Contoh() {
         <div className="topin">
           <Link className="logo" href={loggedIn ? '/beranda' : '/'}>MarketScope <b>Indonesia</b></Link>
           {loggedIn ? (
-            <nav className="topnav" aria-label="Menu utama">
-              <Link href="/beranda">Beranda</Link>
-              <Link href="/riset">Riset permintaan</Link>
-              {isAdmin ? <Link href="/admin">Admin</Link> : null}
-              <Link href="/ganti-password">Ganti password</Link>
-              <form action={logoutAction}><button type="submit">Keluar</button></form>
-            </nav>
+            <AppNav isAdmin={isAdmin} />
           ) : (
             <nav className="topnav" aria-label="Menu"><Link href="/daftar">Daftar</Link><Link href="/login">Masuk</Link></nav>
           )}

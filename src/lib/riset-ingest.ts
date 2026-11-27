@@ -32,6 +32,46 @@ export function normalize(raw: Record<string, unknown>, fallbackDate: string): I
 }
 
 
+type Sb = ReturnType<typeof supabaseAdmin>;
+
+/** Menyimpan toko, produk, dan snapshot harian dari baris yang sudah dinormalisasi. */
+export async function simpanItems(sb: Sb, items: Item[]):
+  Promise<{ ok: true; prodRows: { id: string; marketplace: string; item_id: string }[] } | { ok: false; message: string }> {
+  // Toko -> produk -> snapshot -> tautan ke permintaan.
+  const shops = new Map<string, Item>();
+  items.forEach((i) => shops.set(`${i.marketplace}|${i.shop_id}`, i));
+  const { data: shopRows, error: e1 } = await sb.from('shops').upsert(
+    [...shops.values()].map((i) => ({ marketplace: i.marketplace, shop_id: i.shop_id, nama: i.toko, lokasi: i.kota })),
+    { onConflict: 'marketplace,shop_id' }
+  ).select('id,marketplace,shop_id');
+  if (e1 || !shopRows) return { ok: false, message: 'Gagal menyimpan toko.' };
+  const shopRef = new Map(shopRows.map((r: { id: string; marketplace: string; shop_id: string }) => [`${r.marketplace}|${r.shop_id}`, r.id]));
+
+  const prods = new Map<string, Item>();
+  items.forEach((i) => prods.set(`${i.marketplace}|${i.item_id}`, i));
+  const { data: prodRows, error: e2 } = await sb.from('products').upsert(
+    [...prods.values()].map((i) => ({
+      marketplace: i.marketplace, item_id: i.item_id, shop_ref: shopRef.get(`${i.marketplace}|${i.shop_id}`), nama: i.produk,
+      kategori_riset: i.kategori, kota: i.kota, provinsi: i.provinsi, satuan_harga: i.satuan, url: i.url
+    })),
+    { onConflict: 'marketplace,item_id' }
+  ).select('id,marketplace,item_id');
+  if (e2 || !prodRows) return { ok: false, message: 'Gagal menyimpan produk.' };
+  const prodRef = new Map(prodRows.map((r: { id: string; marketplace: string; item_id: string }) => [`${r.marketplace}|${r.item_id}`, r.id]));
+
+  const snaps = items.map((i) => {
+    const t = i.terjual_tampil ? parseTerjual(i.terjual_tampil) : null;
+    return {
+      product_id: prodRef.get(`${i.marketplace}|${i.item_id}`), tanggal: i.tanggal, harga: i.harga, terjual: t?.min ?? null,
+      terjual_label: t ? i.terjual_tampil : null, terjual_exact: t?.exact ?? false, rating: i.rating
+    };
+  });
+  const { error: e3 } = await sb.from('snapshots').upsert(snaps, { onConflict: 'product_id,tanggal' });
+  if (e3) return { ok: false, message: 'Gagal menyimpan snapshot.' };
+
+  return { ok: true, prodRows };
+}
+
 export type IngestResult =
   | { ok: true; diterima: number; ditolak: number; errors: { baris: number; alasan: string }[] }
   | { ok: false; code: 'NOT_FOUND' | 'VALIDATION' | 'SERVER_ERROR'; message: string; errors?: { baris: number; alasan: string }[] };
@@ -54,37 +94,9 @@ export async function ingestRows(id: string, raws: Record<string, unknown>[], da
     return { ok: false, code: 'VALIDATION', message: 'Tidak ada baris valid.', errors: errors.slice(0, 20) };
   }
 
-  // Toko -> produk -> snapshot -> tautan ke permintaan.
-  const shops = new Map<string, Item>();
-  items.forEach((i) => shops.set(`${i.marketplace}|${i.shop_id}`, i));
-  const { data: shopRows, error: e1 } = await sb.from('shops').upsert(
-    [...shops.values()].map((i) => ({ marketplace: i.marketplace, shop_id: i.shop_id, nama: i.toko, lokasi: i.kota })),
-    { onConflict: 'marketplace,shop_id' }
-  ).select('id,marketplace,shop_id');
-  if (e1 || !shopRows) return { ok: false, code: 'SERVER_ERROR', message: 'Gagal menyimpan toko.' };
-  const shopRef = new Map(shopRows.map((r: { id: string; marketplace: string; shop_id: string }) => [`${r.marketplace}|${r.shop_id}`, r.id]));
-
-  const prods = new Map<string, Item>();
-  items.forEach((i) => prods.set(`${i.marketplace}|${i.item_id}`, i));
-  const { data: prodRows, error: e2 } = await sb.from('products').upsert(
-    [...prods.values()].map((i) => ({
-      marketplace: i.marketplace, item_id: i.item_id, shop_ref: shopRef.get(`${i.marketplace}|${i.shop_id}`), nama: i.produk,
-      kategori_riset: i.kategori, kota: i.kota, provinsi: i.provinsi, satuan_harga: i.satuan, url: i.url
-    })),
-    { onConflict: 'marketplace,item_id' }
-  ).select('id,marketplace,item_id');
-  if (e2 || !prodRows) return { ok: false, code: 'SERVER_ERROR', message: 'Gagal menyimpan produk.' };
-  const prodRef = new Map(prodRows.map((r: { id: string; marketplace: string; item_id: string }) => [`${r.marketplace}|${r.item_id}`, r.id]));
-
-  const snaps = items.map((i) => {
-    const t = i.terjual_tampil ? parseTerjual(i.terjual_tampil) : null;
-    return {
-      product_id: prodRef.get(`${i.marketplace}|${i.item_id}`), tanggal: i.tanggal, harga: i.harga, terjual: t?.min ?? null,
-      terjual_label: t ? i.terjual_tampil : null, terjual_exact: t?.exact ?? false, rating: i.rating
-    };
-  });
-  const { error: e3 } = await sb.from('snapshots').upsert(snaps, { onConflict: 'product_id,tanggal' });
-  if (e3) return { ok: false, code: 'SERVER_ERROR', message: 'Gagal menyimpan snapshot.' };
+  const saved = await simpanItems(sb, items);
+  if (!saved.ok) return { ok: false, code: 'SERVER_ERROR', message: saved.message };
+  const prodRows = saved.prodRows;
 
   await sb.from('riset_item').upsert(prodRows.map((r: { id: string }) => ({ request_id: id, product_id: r.id })), { onConflict: 'request_id,product_id' });
   await sb.from('riset_permintaan').update({ status: 'selesai', selesai: new Date().toISOString(), catatan: errors.length ? `${errors.length} baris dilewati.` : null }).eq('id', id);

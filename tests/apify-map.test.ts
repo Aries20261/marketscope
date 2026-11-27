@@ -29,3 +29,22 @@ test('dashboard tetap tampil tanpa jumlah terjual dan omzet tidak dipalsukan', (
   assert.equal(d.kpi.omzetMin, 0);
   assert.ok(d.catatan.some((c) => c.includes('tidak memiliki data jumlah terjual')));
 });
+
+import { analisisKata } from '../src/lib/riset-calc.ts';
+
+test('analisisKata: rentang, median, toko, porsi 5 teratas, dan bin', () => {
+  const rows = [
+    ...[10000, 20000, 30000, 40000, 50000, 60000].map((h, i) => ({ harga: h, toko: `T${i % 3}` })),
+    { harga: 100000, toko: 'T9' }
+  ];
+  const a = analisisKata(rows)!;
+  assert.equal(a.n, 7);
+  assert.equal(a.min, 10000);
+  assert.equal(a.max, 100000);
+  assert.equal(a.median, 40000);
+  assert.equal(a.toko, 4);
+  assert.equal(a.top5Share, 1);
+  assert.equal(a.bins.reduce((s, b) => s + b.value, 0), 7);
+  assert.equal(analisisKata([]), null);
+  assert.equal(analisisKata([{ harga: 5000, toko: 'A' }])!.bins.reduce((s, b) => s + b.value, 0), 1);
+});

@@ -190,3 +190,45 @@ export function parseCsv(text: string): Record<string, string>[] {
   const header = rows[0].map((h) => h.trim());
   return rows.slice(1).map((r) => Object.fromEntries(header.map((h, i) => [h, (r[i] ?? '').trim()])));
 }
+
+export interface AnalisisKata {
+  n: number;
+  min: number;
+  max: number;
+  median: number;
+  toko: number;
+  /** Porsi (0-1) produk yang dimiliki 5 toko dengan produk terbanyak di hasil. */
+  top5Share: number;
+  bins: Bar[];
+  padat: string;
+  topToko: Bar[];
+}
+
+/**
+ * Analisis satu kata kunci dari daftar produk hasil pencarian (harga dan toko).
+ * Angka mewakili sampel hasil teratas, bukan seluruh pasar.
+ */
+export function analisisKata(rows: { harga: number; toko: string }[], jumlahBin = 6): AnalisisKata | null {
+  const v = rows.filter((r) => Number.isFinite(r.harga) && r.harga >= 0);
+  if (v.length === 0) return null;
+  const hargas = v.map((r) => r.harga);
+  const min = Math.min(...hargas), max = Math.max(...hargas);
+  const width = (max - min) / jumlahBin || 1;
+  const counts = Array<number>(jumlahBin).fill(0);
+  for (const h of hargas) counts[Math.min(jumlahBin - 1, Math.floor((h - min) / width))]++;
+  const bins: Bar[] = counts.map((value, i) => {
+    const lo = min + i * width, hi = min + (i + 1) * width;
+    return { label: max === min ? rpShort(min) : `${rpShort(lo)}–${rpShort(hi)}`, value };
+  });
+  const perToko = new Map<string, number>();
+  for (const r of v) perToko.set(r.toko, (perToko.get(r.toko) ?? 0) + 1);
+  const urut = [...perToko.entries()].sort((a, b) => b[1] - a[1]);
+  const top5 = urut.slice(0, 5);
+  const padatIdx = counts.indexOf(Math.max(...counts));
+  return {
+    n: v.length, min, max, median: median(hargas), toko: perToko.size,
+    top5Share: top5.reduce((s, [, c]) => s + c, 0) / v.length,
+    bins, padat: bins[padatIdx].label,
+    topToko: top5.map(([label, value]) => ({ label, value, sub: `${Math.round((value / v.length) * 100)}% produk` }))
+  };
+}

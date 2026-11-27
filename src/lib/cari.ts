@@ -6,6 +6,8 @@ import type { KolektorRow } from '@/lib/apify-map';
 
 export interface HasilCari {
   key: string;
+  /** ID produk di database (untuk watchlist). */
+  produkId: string | null;
   kata: string;
   nama: string;
   toko: string;
@@ -66,7 +68,7 @@ export async function cariShopee(kataKunci: string[], opts: { sort?: 'sales'; ma
   return items.map((i) => {
     const pid = idByItem.get(i.item_id);
     return {
-      key: i.item_id, kata: byItem.get(i.item_id)?.kata ?? '', nama: i.produk, toko: i.toko, kota: i.kota, harga: i.harga, hargaCoret: i.harga_coret && i.harga_coret > i.harga ? i.harga_coret : null, ulasan: i.jumlah_ulasan,
+      key: i.item_id, produkId: pid ?? null, kata: byItem.get(i.item_id)?.kata ?? '', nama: i.produk, toko: i.toko, kota: i.kota, harga: i.harga, hargaCoret: i.harga_coret && i.harga_coret > i.harga ? i.harga_coret : null, ulasan: i.jumlah_ulasan,
       rating: i.rating, url: i.url, riwayat: ((pid && hist.get(pid)) || []).slice(-30)
     };
   });

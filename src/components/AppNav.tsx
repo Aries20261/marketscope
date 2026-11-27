@@ -12,9 +12,8 @@ function Icon({ k }: { k: string }) {
   return <svg className="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={I[k]} /></svg>;
 }
 
-const SEGERA = [['Watchlist', 'mark']] as const;
 
-/** Menu utama aplikasi. Menu yang belum punya sumber data atau halaman ditandai "segera" dan tidak bisa diklik. */
+/** Menu utama aplikasi. */
 export default function AppNav({ isAdmin }: { isAdmin: boolean }) {
   return (
     <nav className="topnav" aria-label="Menu utama">
@@ -22,9 +21,7 @@ export default function AppNav({ isAdmin }: { isAdmin: boolean }) {
       <Link href="/riset"><Icon k="kw" /><span>Riset kata kunci</span></Link>
       <Link href="/suplier"><Icon k="truck" /><span>Riset suplier</span></Link>
       <Link href="/produk"><Icon k="flask" /><span>Buat produk</span></Link>
-      {SEGERA.map(([t, i]) => (
-        <span key={t} className="navoff" aria-disabled="true" title="Segera hadir"><Icon k={i} /><span>{t}</span><small>segera</small></span>
-      ))}
+      <Link href="/watchlist"><Icon k="mark" /><span>Watchlist</span></Link>
       {isAdmin ? <Link href="/admin">Admin</Link> : null}
       <Link href="/ganti-password">Ganti password</Link>
       <form action={logoutAction}><button type="submit">Keluar</button></form>

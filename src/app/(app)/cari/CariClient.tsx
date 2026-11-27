@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { cariAction } from './actions';
+import { toggleWatchlistAction } from '../watchlist/actions';
 import type { HasilCari } from '@/lib/cari';
 
 const SUMBER: { nama: string; aktif: boolean }[] = [
@@ -30,7 +31,20 @@ function Garis({ pts }: { pts: { tanggal: string; harga: number }[] }) {
   );
 }
 
-export default function CariClient({ bisaCari }: { bisaCari: boolean }) {
+export default function CariClient({ bisaCari, tersimpan, bisaSimpan }: { bisaCari: boolean; tersimpan: string[]; bisaSimpan: boolean }) {
+  const [wl, setWl] = useState<Set<string>>(new Set(tersimpan));
+  const [wlError, setWlError] = useState<string | null>(null);
+  function toggleWl(id: string) {
+    setWlError(null);
+    const sudah = wl.has(id);
+    setWl((s) => { const n = new Set(s); if (sudah) n.delete(id); else n.add(id); return n; });
+    toggleWatchlistAction(id).then((r) => {
+      if (r.error) {
+        setWlError(r.error);
+        setWl((s) => { const n = new Set(s); if (sudah) n.add(id); else n.delete(id); return n; });
+      }
+    });
+  }
   const [kata, setKata] = useState<string[]>([]);
   const [input, setInput] = useState('');
   const [hasil, setHasil] = useState<HasilCari[] | null>(null);
@@ -102,6 +116,7 @@ export default function CariClient({ bisaCari }: { bisaCari: boolean }) {
       </section>
 
       {error ? <p className="err" role="alert">{error}</p> : null}
+      {wlError ? <p className="err" role="alert">{wlError}</p> : null}
       {pending ? <div className="empty" aria-busy="true"><b>Mengambil data dari Shopee…</b>Biasanya 30 detik sampai beberapa menit, tergantung jumlah kata kunci.</div> : null}
       {!pending && hasil === null && !error ? (
         <div className="empty"><b>Mulai pencarian</b>Tambahkan kata kunci, lalu tekan “Cari produk”.</div>
@@ -124,7 +139,15 @@ export default function CariClient({ bisaCari }: { bisaCari: boolean }) {
                     <div className="price mono">{rp(h.harga)}</div>
                     <div className="small">{d === null ? 'Riwayat: 1 titik' : `${d > 0 ? '↗ +' : '↘ '}${d.toFixed(1).replace('.', ',')}% sejak ${h.riwayat[0].tanggal}`}</div>
                     <div className="foot"><span>{h.rating !== null ? `★ ${String(h.rating).replace('.', ',')}` : 'Belum ada rating'}</span>
-                      {h.url ? <a href={h.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Buka di Shopee</a> : null}</div>
+                      <span className="row" style={{ gap: 10 }}>
+                        {h.url ? <a href={h.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Buka di Shopee</a> : null}
+                        {bisaSimpan && h.produkId ? (
+                          <button type="button" className="bm" aria-pressed={wl.has(h.produkId)} aria-label={wl.has(h.produkId) ? 'Hapus dari watchlist' : 'Simpan ke watchlist'}
+                            onClick={(e) => { e.stopPropagation(); toggleWl(h.produkId as string); }}>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill={wl.has(h.produkId) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z" /></svg>
+                          </button>
+                        ) : null}
+                      </span></div>
                   </article>
                 );
               })}

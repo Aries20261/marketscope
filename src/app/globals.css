@@ -130,3 +130,8 @@ textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
 .tabs button{min-height:44px;padding:0 16px;border:0;border-bottom:3px solid transparent;background:transparent;font-weight:700;color:var(--muted);cursor:pointer}
 .tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+
+/* Watchlist */
+.bm{border:0;background:transparent;cursor:pointer;color:var(--muted);min-width:32px;min-height:32px;display:inline-grid;place-items:center;border-radius:8px}
+.bm:hover{background:var(--bg)}
+.bm[aria-pressed=true]{color:var(--accent)}

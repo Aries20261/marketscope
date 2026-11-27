@@ -2,8 +2,11 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { requireUser } from '@/lib/session';
 import { supabaseServer } from '@/lib/supabase/server';
+import { apifyAktif } from '@/lib/riset-apify';
+import AnalisisCepat from './AnalisisCepat';
 
-export const metadata: Metadata = { title: 'Riset permintaan' };
+export const maxDuration = 300; // analisis cepat menunggu aktor Apify
+export const metadata: Metadata = { title: 'Riset kata kunci' };
 
 export default async function RisetList() {
   const me = await requireUser();
@@ -18,12 +21,15 @@ export default async function RisetList() {
   return (
     <>
       <div className="pagehead">
-        <div><h1>Riset permintaan</h1><p className="small">Cari berdasarkan kata kunci dan wilayah, atau satu toko. Hasilnya berupa dashboard, grafik, dan PDF.</p></div>
+        <div><h1>Riset kata kunci</h1><p className="small">Seberapa ramai dan ke mana harga bergerak untuk satu kata kunci. Untuk riset mendalam per wilayah atau toko, buat permintaan riset.</p></div>
         <div className="row">
           <Link className="btn" href="/contoh">Lihat contoh hasil</Link>
           {canCreate ? <Link className="btn primary" href="/riset/baru">Permintaan baru</Link> : null}
         </div>
       </div>
+      <AnalisisCepat bisa={apifyAktif() && canCreate} />
+      <h2 style={{ margin: '28px 0 8px' }}>Permintaan riset (wilayah atau toko)</h2>
+      <p className="small" style={{ marginTop: 0 }}>Hasilnya berupa dashboard lengkap dan PDF.</p>
       <div className="card">
         {rows.length === 0 ? (
           <p className="small" style={{ margin: 0 }}>Belum ada permintaan. {canCreate ? 'Buat yang pertama dengan tombol di atas.' : 'Analis atau admin dapat membuat permintaan.'}</p>

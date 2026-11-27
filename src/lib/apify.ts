@@ -2,7 +2,8 @@ import 'server-only';
 import { requireToken, pesanErrorApify } from '@/lib/env';
 import { mapApifyItems, type ApifyShopeeItem, type KolektorRow } from '@/lib/apify-map';
 
-const ACTOR = 'xtracto~shopee-scraper';
+// xtracto/shopee-scraper diblokir Shopee (tanpa opsi proxy); axery/shopee-scraper punya proxyConfiguration dan tidak menagih run yang diblokir.
+const ACTOR = 'axery~shopee-scraper';
 
 export interface KeywordOptions {
   country?: string;
@@ -30,7 +31,8 @@ export async function scrapeShopeeKeyword(
   if (opts.sort) input.sort = opts.sort;
   if (opts.minPrice != null) input.minPrice = opts.minPrice;
   if (opts.maxPrice != null) input.maxPrice = opts.maxPrice;
-  if (opts.fetchDetail) input.fetchDetail = true;
+  // Shopee memblokir banyak IP datacenter; proxy residential Indonesia menurut halaman aktor.
+  input.proxyConfiguration = { useApifyProxy: true, apifyProxyGroups: ['RESIDENTIAL'], apifyProxyCountry: 'ID' };
 
   const res = await fetch(`https://api.apify.com/v2/acts/${ACTOR}/run-sync-get-dataset-items?timeout=240`, {
     method: 'POST',

@@ -119,3 +119,14 @@ textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px
 .empty b{display:block;color:var(--ink);margin-bottom:4px}
 .side{position:sticky;top:12px}
 @media (max-width:900px){.layout{grid-template-columns:1fr}.side{position:static}}
+
+/* Buat produk */
+.steps{list-style:none;margin:16px 0 8px;padding:0;display:flex;gap:10px;flex-wrap:wrap}
+.steps li{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:99px;padding:4px 12px 4px 6px;font-size:13px;font-weight:600;background:#fff}
+.steps li span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--bg);font-size:12px}
+.steps li em{font-style:normal;font-size:11px;color:var(--muted);font-weight:700}
+.steps li.done{background:var(--accent-soft);border-color:transparent}
+.steps li.done span{background:var(--accent);color:#fff}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs button{min-height:44px;padding:0 16px;border:0;border-bottom:3px solid transparent;background:transparent;font-weight:700;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}

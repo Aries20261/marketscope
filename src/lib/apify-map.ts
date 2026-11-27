@@ -8,6 +8,8 @@ export interface ApifyShopeeItem {
   title?: string | null;
   url?: string | null;
   price?: number | string | null;
+  original_price?: number | string | null;
+  rating_count?: number | string | null;
   rating?: number | string | null;
   rating_star?: number | string | null;
   sold_count?: number | string | null;
@@ -23,6 +25,8 @@ export interface KolektorRow {
   item_id: string;
   produk: string;
   harga: number;
+  harga_coret: number | null;
+  jumlah_ulasan: number | null;
   terjual_tampil: string;
   tanggal: string;
   kota: string | null;
@@ -44,6 +48,8 @@ export function mapApifyItem(raw: ApifyShopeeItem, tanggal: string, kategori: st
   const harga = present(raw.price) ? Number(raw.price) : NaN;
   if (!shop_id || !item_id || !produk || !Number.isFinite(harga) || harga < 0) return null;
   const rating = Number(raw.rating ?? raw.rating_star);
+  const coret = present(raw.original_price) ? Number(raw.original_price) : NaN;
+  const ulasan = present(raw.rating_count) ? Number(raw.rating_count) : NaN;
   return {
     marketplace: 'Shopee',
     shop_id,
@@ -51,6 +57,8 @@ export function mapApifyItem(raw: ApifyShopeeItem, tanggal: string, kategori: st
     item_id,
     produk,
     harga,
+    harga_coret: Number.isFinite(coret) && coret >= 0 ? Math.round(coret) : null,
+    jumlah_ulasan: Number.isFinite(ulasan) && ulasan >= 0 ? Math.round(ulasan) : null,
     terjual_tampil: present(raw.sold_count) ? String(raw.sold_count) : '',
     tanggal,
     kota: String(raw.location ?? raw.shop_location ?? raw.shop?.location ?? '').trim() || null,

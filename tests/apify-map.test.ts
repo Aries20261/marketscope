@@ -17,6 +17,15 @@ test('mapApifyItem memetakan kartu mode keyword', () => {
   assert.equal(r.toko, 'Toko 12345678');
 });
 
+test('mapApifyItem membawa harga coret dan jumlah ulasan', () => {
+  const r = mapApifyItem({ ...card, original_price: 17500000, rating_count: 312 }, '2026-11-27', null)!;
+  assert.equal(r.harga_coret, 17500000);
+  assert.equal(r.jumlah_ulasan, 312);
+  const k = mapApifyItem(card, '2026-11-27', null)!;
+  assert.equal(k.harga_coret, null);
+  assert.equal(k.jumlah_ulasan, null);
+});
+
 test('mapApifyItem menolak baris tanpa id/nama/harga dan membuang duplikat', () => {
   assert.equal(mapApifyItem({ ...card, price: null }, '2026-11-27', null), null);
   assert.equal(mapApifyItem({ ...card, item_id: null }, '2026-11-27', null), null);

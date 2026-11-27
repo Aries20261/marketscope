@@ -44,3 +44,5 @@ export function analisisTema(ulasan: Ulasan[], produkIds: string[]): HasilTema {
   }
   return { jumlahUlasan: n, tema: tema.filter((t) => t.total > 0).sort((a, b) => b.total - a.total) };
 }
+
+export const MAKS_ULASAN_PER_PRODUK = 60;

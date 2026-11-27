@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { ambilTerlarisAction, tarikUlasanAction, MAKS_ULASAN_PER_PRODUK, type UlasanState } from './actions';
+import { ambilTerlarisAction, tarikUlasanAction, type UlasanState } from './actions';
+import { MAKS_ULASAN_PER_PRODUK } from '@/lib/ulasan-map';
 import type { HasilCari } from '@/lib/cari';
 
 const rp = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);

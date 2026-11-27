@@ -28,7 +28,7 @@ export interface UlasanState {
   tema?: { nama: string; perProduk: number[]; total: number }[];
 }
 
-export const MAKS_ULASAN_PER_PRODUK = 60;
+
 
 /** Langkah 3: tarik ulasan bintang 1 untuk produk terlaris (aktor Apify berbayar per ulasan), lalu kelompokkan per tema keluhan. */
 export async function tarikUlasanAction(produk: { key: string; url: string | null }[]): Promise<UlasanState> {
@@ -36,7 +36,7 @@ export async function tarikUlasanAction(produk: { key: string; url: string | nul
   if (me.role === 'viewer') return { error: 'Peran viewer tidak dapat menarik ulasan.' };
   if (!apifyAktif()) return { error: 'Pengambilan data belum aktif: APIFY_TOKEN belum diisi di server.' };
   const { ambilUlasanBintang1, urlProdukValid } = await import('@/lib/apify-ulasan');
-  const { analisisTema } = await import('@/lib/ulasan-map');
+  const { analisisTema, MAKS_ULASAN_PER_PRODUK } = await import('@/lib/ulasan-map');
   const valid = (produk ?? []).filter((p) => p && typeof p.url === 'string' && urlProdukValid(p.url)).slice(0, 5);
   if (valid.length === 0) return { error: 'Tidak ada produk dengan tautan Shopee yang valid.' };
   try {

@@ -3,18 +3,34 @@ import type { Metadata } from 'next';
 import RisetDashboard from '@/components/RisetDashboard';
 import PrintButton from '@/components/PrintButton';
 import { buildDashboard } from '@/lib/riset-calc';
+import { getProfile } from '@/lib/session';
+import { logoutAction } from '@/app/login/actions';
 import { CONTOH_ROWS, CONTOH_TOKO } from '@/lib/contoh-riset';
 
 export const metadata: Metadata = { title: 'Contoh hasil riset' };
 
-export default function Contoh() {
+export default async function Contoh() {
+  // Halaman ini publik, tetapi pengguna yang sudah login tetap melihat menu aplikasi.
+  const me = await getProfile();
+  const loggedIn = Boolean(me && me.aktif);
+  const isAdmin = me?.role === 'admin' || me?.role === 'superadmin';
   const d = buildDashboard(CONTOH_ROWS);
   return (
     <>
       <header className="top">
         <div className="topin">
-          <Link className="logo" href="/">MarketScope <b>Indonesia</b></Link>
-          <nav className="topnav" aria-label="Menu"><Link href="/daftar">Daftar</Link><Link href="/login">Masuk</Link></nav>
+          <Link className="logo" href={loggedIn ? '/beranda' : '/'}>MarketScope <b>Indonesia</b></Link>
+          {loggedIn ? (
+            <nav className="topnav" aria-label="Menu utama">
+              <Link href="/beranda">Beranda</Link>
+              <Link href="/riset">Riset permintaan</Link>
+              {isAdmin ? <Link href="/admin">Admin</Link> : null}
+              <Link href="/ganti-password">Ganti password</Link>
+              <form action={logoutAction}><button type="submit">Keluar</button></form>
+            </nav>
+          ) : (
+            <nav className="topnav" aria-label="Menu"><Link href="/daftar">Daftar</Link><Link href="/login">Masuk</Link></nav>
+          )}
         </div>
       </header>
       <main className="wrap">

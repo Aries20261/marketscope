@@ -5,7 +5,7 @@ import { parseTerjual } from '@/lib/riset-calc';
 export interface Item {
   marketplace: string; shop_id: string; toko: string; item_id: string; produk: string; harga: number; terjual_tampil: string;
   tanggal: string; kota: string | null; provinsi: string | null; kategori: string | null; satuan: string | null;
-  rating: number | null; url: string | null; harga_coret: number | null; jumlah_ulasan: number | null;
+  rating: number | null; url: string | null; harga_coret: number | null; jumlah_ulasan: number | null; stok: number | null;
 }
 
 const s = (v: unknown, max: number) => String(v ?? '').trim().slice(0, max);
@@ -29,7 +29,8 @@ export function normalize(raw: Record<string, unknown>, fallbackDate: string): I
     kategori: s(raw.kategori, 60) || null, satuan: s(raw.satuan, 60) || null, rating: nOrNull(raw.rating),
     url: s(raw.url, 300) || null,
     harga_coret: nOrNull(raw.harga_coret) === null ? null : Math.max(0, Math.round(Number(raw.harga_coret))),
-    jumlah_ulasan: nOrNull(raw.jumlah_ulasan) === null ? null : Math.max(0, Math.round(Number(raw.jumlah_ulasan)))
+    jumlah_ulasan: nOrNull(raw.jumlah_ulasan) === null ? null : Math.max(0, Math.round(Number(raw.jumlah_ulasan))),
+    stok: nOrNull(raw.stok) === null ? null : Math.max(0, Math.round(Number(raw.stok)))
   };
 }
 
@@ -66,7 +67,7 @@ export async function simpanItems(sb: Sb, items: Item[]):
     return {
       product_id: prodRef.get(`${i.marketplace}|${i.item_id}`), tanggal: i.tanggal, harga: i.harga, terjual: t?.min ?? null,
       terjual_label: t ? i.terjual_tampil : null, terjual_exact: t?.exact ?? false, rating: i.rating,
-      harga_coret: i.harga_coret, jumlah_ulasan: i.jumlah_ulasan
+      harga_coret: i.harga_coret, jumlah_ulasan: i.jumlah_ulasan, stok: i.stok
     };
   });
   const { error: e3 } = await sb.from('snapshots').upsert(snaps, { onConflict: 'product_id,tanggal' });
